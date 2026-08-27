@@ -1,5 +1,3 @@
-const boot = document.getElementById('boot');
-const bootLetters = [...document.querySelectorAll('.boot-letter')];
 const projects = [...document.querySelectorAll('.project')];
 const backgrounds = [...document.querySelectorAll('.work-bg')];
 const filters = [...document.querySelectorAll('.filter')];
@@ -17,17 +15,28 @@ const frames = [
   '00:02:47:21','00:06:03:15','00:01:12:05','00:08:42:11'
 ];
 
-/* INTRO: random letter reveal -> slice -> scale through to landing */
-window.addEventListener('load', () => {
-  const order = [3,0,5,1,6,2,4];
-  order.forEach((letterIndex, step) => {
-    setTimeout(() => bootLetters[letterIndex].classList.add('reveal'), 320 + step * 115);
-  });
+const boot = document.getElementById('boot');
+const searchFrame = document.getElementById('searchFrame');
+const searchImage = document.getElementById('searchImage');
+const searchFile = document.getElementById('searchFile');
+const searchTc = document.getElementById('searchTc');
+const archiveStatus = document.getElementById('archiveStatus');
 
-  setTimeout(() => boot.classList.add('sliced'), 1320);
-  setTimeout(() => boot.classList.add('zooming'), 1640);
-  setTimeout(() => boot.classList.add('reveal-next'), 1980);
-  setTimeout(() => boot.classList.add('gone'), 2650);
+window.addEventListener('load', () => {
+  const scans = [
+    ['V_001','00:03:18:02','linear-gradient(135deg,#221014,#080808 52%,#71303a)'],
+    ['V_004','00:02:06:12','radial-gradient(circle at 70% 30%,#6d4435,transparent 22%),linear-gradient(135deg,#090909,#1b1717)'],
+    ['V_009','00:00:44:20','linear-gradient(120deg,#090909,#35131a 48%,#050505)'],
+    ['V_016','00:07:12:11','radial-gradient(circle at 40% 50%,#68635e,transparent 13%),linear-gradient(145deg,#060606,#171214)'],
+    ['V_003','00:11:42:18','linear-gradient(145deg,#0b0b0b,#251317 55%,#090909)']
+  ];
+  scans.forEach((s,i) => setTimeout(() => {
+    searchFile.textContent=s[0]; searchTc.textContent=s[1]; searchImage.style.background=s[2];
+    searchFrame.style.width=`min(${36+i*7}vw, ${560+i*75}px)`;
+  }, 280+i*210));
+  setTimeout(()=>{ archiveStatus.textContent='LOCKED / V_003'; boot.classList.add('found'); },1420);
+  setTimeout(()=>boot.classList.add('expand'),1780);
+  setTimeout(()=>boot.classList.add('gone'),2480);
 });
 
 function activate(index) {
