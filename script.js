@@ -103,9 +103,11 @@ window.addEventListener('load', () => {
     document.body.classList.add('home-reveal');
   }, 5200);
 
+  // At this point the intro has already become transparent.
+  // Remove it without another opacity fade so there is only ONE visual handoff.
   setTimeout(() => {
     boot.classList.add('gone');
-  }, totalDuration);
+  }, 5550);
 });
 
 function activate(index) {
