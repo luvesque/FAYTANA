@@ -201,3 +201,129 @@ form.addEventListener('submit', event => {
 
   window.location.href = `mailto:faytanafilms@gmail.com?subject=${subject}&body=${body}`;
 });
+
+
+/* ===== REAL MEDIA + FILM LIGHTBOX ===== */
+document.querySelectorAll('.work-bg video').forEach(video => {
+  const holder = video.closest('.work-bg');
+
+  video.addEventListener('loadeddata', () => {
+    holder.classList.add('has-media');
+  });
+
+  video.addEventListener('error', () => {
+    holder.classList.remove('has-media');
+  });
+});
+
+document.querySelectorAll('.frame img').forEach(img => {
+  const frame = img.closest('.frame');
+
+  if (img.complete && img.naturalWidth > 0) {
+    frame.classList.add('has-media');
+  }
+
+  img.addEventListener('load', () => frame.classList.add('has-media'));
+  img.addEventListener('error', () => frame.classList.remove('has-media'));
+});
+
+function syncPreviewVideos(activeIndex){
+  document.querySelectorAll('.work-bg').forEach((bg, i) => {
+    const video = bg.querySelector('video');
+    if (!video) return;
+
+    if (i === activeIndex && bg.classList.contains('has-media')) {
+      const playAttempt = video.play();
+      if (playAttempt && typeof playAttempt.catch === 'function') {
+        playAttempt.catch(() => {});
+      }
+    } else {
+      video.pause();
+    }
+  });
+}
+
+const originalActivate = activate;
+activate = function(index){
+  originalActivate(index);
+  syncPreviewVideos(index);
+};
+
+const filmLightbox = document.getElementById('filmLightbox');
+const filmPlayer = document.getElementById('filmPlayer');
+const filmLightboxCode = document.getElementById('filmLightboxCode');
+const filmLightboxTitle = document.getElementById('filmLightboxTitle');
+const filmLightboxCategory = document.getElementById('filmLightboxCategory');
+const filmLightboxRole = document.getElementById('filmLightboxRole');
+
+function normalizeYouTubeId(value){
+  if (!value) return '';
+  const trimmed = value.trim();
+
+  if (/^[A-Za-z0-9_-]{11}$/.test(trimmed)) return trimmed;
+
+  try {
+    const url = new URL(trimmed);
+    if (url.hostname.includes('youtu.be')) {
+      return url.pathname.split('/').filter(Boolean)[0] || '';
+    }
+    if (url.searchParams.get('v')) {
+      return url.searchParams.get('v');
+    }
+    const parts = url.pathname.split('/').filter(Boolean);
+    const embedIndex = parts.indexOf('embed');
+    if (embedIndex !== -1 && parts[embedIndex + 1]) {
+      return parts[embedIndex + 1];
+    }
+    const shortsIndex = parts.indexOf('shorts');
+    if (shortsIndex !== -1 && parts[shortsIndex + 1]) {
+      return parts[shortsIndex + 1];
+    }
+  } catch (e) {}
+
+  return '';
+}
+
+function openFilm(project){
+  const youtubeId = normalizeYouTubeId(project.dataset.youtube);
+
+  if (!youtubeId) {
+    return;
+  }
+
+  const code = project.querySelector('.code')?.textContent.trim() || '';
+  const title = project.querySelector('.title')?.textContent.trim() || '';
+  const category = project.querySelector('.type')?.textContent.trim() || '';
+  const role = project.querySelector('.role')?.textContent.trim() || '';
+
+  filmLightboxCode.textContent = code;
+  filmLightboxTitle.textContent = title;
+  filmLightboxCategory.textContent = category;
+  filmLightboxRole.textContent = role;
+
+  filmPlayer.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`;
+  filmLightbox.classList.add('open');
+  filmLightbox.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('film-open');
+}
+
+function closeFilm(){
+  filmLightbox.classList.remove('open');
+  filmLightbox.setAttribute('aria-hidden', 'true');
+  filmPlayer.src = '';
+  document.body.classList.remove('film-open');
+}
+
+projects.forEach(project => {
+  project.addEventListener('click', () => openFilm(project));
+});
+
+document.querySelectorAll('[data-close-film]').forEach(el => {
+  el.addEventListener('click', closeFilm);
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && filmLightbox.classList.contains('open')) {
+    closeFilm();
+  }
+});
