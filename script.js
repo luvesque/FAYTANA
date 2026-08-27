@@ -16,22 +16,96 @@ const frames = [
 ];
 
 const boot = document.getElementById('boot');
-const preview = document.getElementById('timelinePreview');
+const playhead = document.getElementById('playhead');
 const previewFile = document.getElementById('previewFile');
+const previewRole = document.getElementById('previewRole');
+const previewFrame = document.getElementById('previewFrame');
 const tlTc = document.getElementById('tlTc');
+const tlStatus = document.getElementById('tlStatus');
 
 window.addEventListener('load', () => {
-  setTimeout(()=>boot.classList.add('built'),260);
-  setTimeout(()=>boot.classList.add('playing'),650);
-  const cuts=[
-    [720,'V_001','linear-gradient(135deg,#1d1013,#070707 55%,#5e2530)'],
-    [980,'V_009','radial-gradient(circle at 68% 30%,#6c4435,transparent 22%),linear-gradient(135deg,#080808,#191516)'],
-    [1240,'V_016','linear-gradient(120deg,#080808,#35131a 48%,#050505)'],
-    [1500,'V_004','radial-gradient(circle at 42% 52%,#66615c,transparent 12%),linear-gradient(145deg,#050505,#171214)']
+  const totalDuration = 5900;
+  const playbackStart = 1550;
+  const playbackEnd = 4550;
+  const playbackDuration = playbackEnd - playbackStart;
+
+  const timelineShell = document.getElementById('timelineShell');
+  const shellRect = () => timelineShell.getBoundingClientRect();
+
+  const cuts = [
+    { start: 0.00, end: 0.18, file:'V_001', role:'FULL PRODUCTION',
+      bg:'linear-gradient(135deg,#1d1013,#070707 55%,#5e2530)' },
+    { start: 0.18, end: 0.41, file:'V_009', role:'EDITOR',
+      bg:'radial-gradient(circle at 68% 30%,#6c4435,transparent 22%),linear-gradient(135deg,#080808,#191516)' },
+    { start: 0.41, end: 0.56, file:'V_016', role:'FULL PRODUCTION',
+      bg:'linear-gradient(120deg,#080808,#35131a 48%,#050505)' },
+    { start: 0.56, end: 0.85, file:'V_004', role:'FULL PRODUCTION',
+      bg:'radial-gradient(circle at 42% 52%,#66615c,transparent 12%),linear-gradient(145deg,#050505,#171214)' },
+    { start: 0.85, end: 1.00, file:'V_003', role:'FULL PRODUCTION',
+      bg:'linear-gradient(145deg,#0b0b0b,#251317 55%,#090909)' }
   ];
-  cuts.forEach(([t,file,bg],i)=>setTimeout(()=>{previewFile.textContent=file;preview.style.background=bg;tlTc.textContent=`00:00:0${i+1}:12`;},t));
-  setTimeout(()=>boot.classList.add('collapse'),1850);
-  setTimeout(()=>boot.classList.add('gone'),2450);
+
+  const startTime = performance.now();
+
+  setTimeout(() => {
+    boot.classList.add('ready');
+    tlStatus.textContent = 'ASSEMBLING TIMELINE...';
+  }, 250);
+
+  setTimeout(() => {
+    boot.classList.add('built');
+    tlStatus.textContent = 'SEQUENCE READY';
+  }, 900);
+
+  function setPreview(cut){
+    if (previewFile.textContent !== cut.file){
+      previewFile.textContent = cut.file;
+      previewRole.textContent = cut.role;
+      previewFrame.style.background = cut.bg;
+    }
+  }
+
+  function frame(now){
+    const elapsed = now - startTime;
+
+    if (elapsed >= playbackStart && elapsed <= playbackEnd){
+      const p = Math.max(0, Math.min(1, (elapsed - playbackStart) / playbackDuration));
+      const rect = shellRect();
+      const leftPad = 42;
+      const usable = rect.width - leftPad;
+      playhead.style.transform = `translateX(${usable * p}px)`;
+
+      const current = cuts.find(c => p >= c.start && p < c.end) || cuts[cuts.length - 1];
+      setPreview(current);
+
+      const totalFrames = Math.floor(p * 6 * 24);
+      const sec = Math.floor(totalFrames / 24);
+      const fr = totalFrames % 24;
+      tlTc.textContent = `00:00:0${sec}:${String(fr).padStart(2,'0')}`;
+      tlStatus.textContent = 'PLAYING SEQUENCE';
+    }
+
+    if (elapsed < totalDuration) requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+
+  setTimeout(() => {
+    tlStatus.textContent = 'CONFORMING TO FAYTANA ARCHIVE';
+  }, 4600);
+
+  setTimeout(() => {
+    boot.classList.add('bleeding');
+  }, 4850);
+
+  setTimeout(() => {
+    boot.classList.add('home-bleed');
+    document.body.classList.add('home-reveal');
+  }, 5200);
+
+  setTimeout(() => {
+    boot.classList.add('gone');
+  }, totalDuration);
 });
 
 function activate(index) {
