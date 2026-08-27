@@ -11,22 +11,60 @@
 <body>
 
   <!-- INTRO VARIATION -->
-  <div class="boot timeline-intro" id="boot" aria-hidden="true">
-    <div class="tl-head"><span>FAYTANA / EDIT 01</span><span>SEQUENCE: ARCHIVE_2026</span></div>
-    <div class="timeline-stage" id="timelineStage">
-      <div class="playhead" id="playhead"><span></span></div>
-      <div class="track video-track">
-        <b>V1</b><i class="clip c1">V_001</i><i class="clip c2">V_009</i><i class="clip c3">V_016</i><i class="clip c4">V_004</i>
+  <div class="boot timeline-intro-v2" id="boot" aria-hidden="true">
+    <div class="tlv2-bg" id="tlv2Bg"></div>
+
+    <div class="tlv2-preview" id="tlv2Preview">
+      <span class="tlv2-preview-file" id="previewFile">V_001</span>
+      <span class="tlv2-preview-role" id="previewRole">FULL PRODUCTION</span>
+      <div class="tlv2-preview-frame" id="previewFrame"></div>
+    </div>
+
+    <div class="tlv2-head">
+      <span>FAYTANA / EDIT 01</span>
+      <span>SEQUENCE: ARCHIVE_2026</span>
+    </div>
+
+    <div class="tlv2-timeline-shell" id="timelineShell">
+      <div class="tlv2-ruler">
+        <span>00:00</span><span>00:01</span><span>00:02</span><span>00:03</span><span>00:04</span><span>00:05</span>
       </div>
-      <div class="track audio-track">
-        <b>A1</b><i class="wave w1"></i><i class="wave w2"></i><i class="wave w3"></i>
+
+      <div class="tlv2-playhead" id="playhead"><span></span></div>
+
+      <div class="tlv2-track-row">
+        <b>V1</b>
+        <div class="tlv2-track">
+          <i class="tlv2-clip clip-a" data-file="V_001">V_001</i>
+          <i class="tlv2-clip clip-b" data-file="V_009">V_009</i>
+          <i class="tlv2-clip clip-c" data-file="V_016">V_016</i>
+          <i class="tlv2-clip clip-d" data-file="V_004">V_004</i>
+        </div>
       </div>
-      <div class="track video-track second">
-        <b>V2</b><i class="clip c5">V_003</i><i class="clip c6">V_012</i>
+
+      <div class="tlv2-track-row">
+        <b>A1</b>
+        <div class="tlv2-track">
+          <i class="tlv2-wave wave-a"></i>
+          <i class="tlv2-wave wave-b"></i>
+          <i class="tlv2-wave wave-c"></i>
+          <i class="tlv2-wave wave-d"></i>
+        </div>
+      </div>
+
+      <div class="tlv2-track-row">
+        <b>V2</b>
+        <div class="tlv2-track">
+          <i class="tlv2-clip clip-e" data-file="V_003">V_003</i>
+          <i class="tlv2-clip clip-f" data-file="V_012">V_012</i>
+        </div>
       </div>
     </div>
-    <div class="timeline-preview" id="timelinePreview"><span id="previewFile">V_001</span></div>
-    <div class="tl-tc" id="tlTc">00:00:00:00</div>
+
+    <div class="tlv2-footer">
+      <span id="tlTc">00:00:00:00</span>
+      <span id="tlStatus">ASSEMBLING TIMELINE...</span>
+    </div>
   </div>
 
   <header class="nav">
@@ -40,7 +78,7 @@
 
   <main>
     <!-- LANDING -->
-    <section class="landing" id="landing">
+    <section class="landing landing-hidden" id="landing">
       <div class="landing-top">
         <div class="micro muted">TORONTO / CANADA</div>
         <div class="micro muted">FAYTANA ARCHIVE 2026</div>
