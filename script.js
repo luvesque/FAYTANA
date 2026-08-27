@@ -16,16 +16,22 @@ const frames = [
 ];
 
 const boot = document.getElementById('boot');
-const vfTc = document.getElementById('vfTc');
-const focusLabel = document.getElementById('focusLabel');
+const preview = document.getElementById('timelinePreview');
+const previewFile = document.getElementById('previewFile');
+const tlTc = document.getElementById('tlTc');
 
 window.addEventListener('load', () => {
-  let f=0;
-  const timer=setInterval(()=>{ f++; vfTc.textContent=`00:00:00:${String(f%24).padStart(2,'0')}`; },42);
-  setTimeout(()=>{ boot.classList.add('focused'); focusLabel.textContent='FOCUS LOCKED'; },650);
-  setTimeout(()=>{ focusLabel.textContent='● RECORDING'; },1450);
-  setTimeout(()=>boot.classList.add('recording'),1850);
-  setTimeout(()=>{ clearInterval(timer); boot.classList.add('gone'); },2450);
+  setTimeout(()=>boot.classList.add('built'),260);
+  setTimeout(()=>boot.classList.add('playing'),650);
+  const cuts=[
+    [720,'V_001','linear-gradient(135deg,#1d1013,#070707 55%,#5e2530)'],
+    [980,'V_009','radial-gradient(circle at 68% 30%,#6c4435,transparent 22%),linear-gradient(135deg,#080808,#191516)'],
+    [1240,'V_016','linear-gradient(120deg,#080808,#35131a 48%,#050505)'],
+    [1500,'V_004','radial-gradient(circle at 42% 52%,#66615c,transparent 12%),linear-gradient(145deg,#050505,#171214)']
+  ];
+  cuts.forEach(([t,file,bg],i)=>setTimeout(()=>{previewFile.textContent=file;preview.style.background=bg;tlTc.textContent=`00:00:0${i+1}:12`;},t));
+  setTimeout(()=>boot.classList.add('collapse'),1850);
+  setTimeout(()=>boot.classList.add('gone'),2450);
 });
 
 function activate(index) {
