@@ -16,27 +16,16 @@ const frames = [
 ];
 
 const boot = document.getElementById('boot');
-const searchFrame = document.getElementById('searchFrame');
-const searchImage = document.getElementById('searchImage');
-const searchFile = document.getElementById('searchFile');
-const searchTc = document.getElementById('searchTc');
-const archiveStatus = document.getElementById('archiveStatus');
+const vfTc = document.getElementById('vfTc');
+const focusLabel = document.getElementById('focusLabel');
 
 window.addEventListener('load', () => {
-  const scans = [
-    ['V_001','00:03:18:02','linear-gradient(135deg,#221014,#080808 52%,#71303a)'],
-    ['V_004','00:02:06:12','radial-gradient(circle at 70% 30%,#6d4435,transparent 22%),linear-gradient(135deg,#090909,#1b1717)'],
-    ['V_009','00:00:44:20','linear-gradient(120deg,#090909,#35131a 48%,#050505)'],
-    ['V_016','00:07:12:11','radial-gradient(circle at 40% 50%,#68635e,transparent 13%),linear-gradient(145deg,#060606,#171214)'],
-    ['V_003','00:11:42:18','linear-gradient(145deg,#0b0b0b,#251317 55%,#090909)']
-  ];
-  scans.forEach((s,i) => setTimeout(() => {
-    searchFile.textContent=s[0]; searchTc.textContent=s[1]; searchImage.style.background=s[2];
-    searchFrame.style.width=`min(${36+i*7}vw, ${560+i*75}px)`;
-  }, 280+i*210));
-  setTimeout(()=>{ archiveStatus.textContent='LOCKED / V_003'; boot.classList.add('found'); },1420);
-  setTimeout(()=>boot.classList.add('expand'),1780);
-  setTimeout(()=>boot.classList.add('gone'),2480);
+  let f=0;
+  const timer=setInterval(()=>{ f++; vfTc.textContent=`00:00:00:${String(f%24).padStart(2,'0')}`; },42);
+  setTimeout(()=>{ boot.classList.add('focused'); focusLabel.textContent='FOCUS LOCKED'; },650);
+  setTimeout(()=>{ focusLabel.textContent='● RECORDING'; },1450);
+  setTimeout(()=>boot.classList.add('recording'),1850);
+  setTimeout(()=>{ clearInterval(timer); boot.classList.add('gone'); },2450);
 });
 
 function activate(index) {
