@@ -508,10 +508,18 @@ footer{display:flex;justify-content:space-between;padding:28px 4vw;color:var(--g
   opacity:0;
 }
 .timeline-intro-v2.home-bleed .tlv2-preview{
-  opacity:.12;
+  opacity:0;
 }
 .timeline-intro-v2.home-bleed{
   background:transparent;
+  pointer-events:none;
+}
+
+/* Prevent the old boot .gone opacity transition from creating a second fade. */
+.timeline-intro-v2.home-bleed.gone{
+  transition:none !important;
+  opacity:0 !important;
+  visibility:hidden !important;
 }
 
 /* Landing content fades in only after the bleed starts */
