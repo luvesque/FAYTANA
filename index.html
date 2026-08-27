@@ -11,18 +11,14 @@
 <body>
 
   <!-- INTRO VARIATION -->
-  <div class="boot archive-search" id="boot" aria-hidden="true">
-    <div class="archive-hud">
-      <span>FAYTANA / VISUAL ARCHIVE</span><span id="archiveStatus">SEARCHING...</span>
+  <div class="boot viewfinder-intro" id="boot" aria-hidden="true">
+    <div class="vf-image" id="vfImage"></div>
+    <div class="vf-ui">
+      <div class="vf-top"><span><b class="rec-dot"></b> REC</span><span>FAYTANA / CAM A</span><span>24 FPS</span></div>
+      <div class="focus-box" id="focusBox"><span></span><span></span><span></span><span></span><b>FAYTANA</b></div>
+      <div class="vf-bottom"><span>TC <b id="vfTc">00:00:00:00</b></span><span>ISO 800 &nbsp; 1/48 &nbsp; 5600K</span></div>
     </div>
-    <div class="search-frame" id="searchFrame">
-      <div class="search-image" id="searchImage"></div>
-      <span class="corner tl"></span><span class="corner tr"></span>
-      <span class="corner bl"></span><span class="corner br"></span>
-      <div class="search-file" id="searchFile">V_001</div>
-      <div class="search-tc" id="searchTc">00:03:18:02</div>
-    </div>
-    <div class="archive-found" id="archiveFound">ARCHIVE FOUND.</div>
+    <div class="focus-label" id="focusLabel">PULLING FOCUS</div>
   </div>
 
   <header class="nav">
