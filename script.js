@@ -202,8 +202,7 @@ form.addEventListener('submit', event => {
   window.location.href = `mailto:faytanafilms@gmail.com?subject=${subject}&body=${body}`;
 });
 
-
-/* ===== REAL MEDIA + FILM LIGHTBOX ===== */
+/* ===== REAL MEDIA + FAYTANA EDIT SUITE ===== */
 document.querySelectorAll('.work-bg video').forEach(video => {
   const holder = video.closest('.work-bg');
 
@@ -249,12 +248,43 @@ activate = function(index){
   syncPreviewVideos(index);
 };
 
-const filmLightbox = document.getElementById('filmLightbox');
-const filmPlayer = document.getElementById('filmPlayer');
-const filmLightboxCode = document.getElementById('filmLightboxCode');
-const filmLightboxTitle = document.getElementById('filmLightboxTitle');
-const filmLightboxCategory = document.getElementById('filmLightboxCategory');
-const filmLightboxRole = document.getElementById('filmLightboxRole');
+const suite = document.getElementById('editSuite');
+const suiteTimelineScroll = document.getElementById('suiteTimelineScroll');
+const suiteTimelineContent = document.getElementById('suiteTimelineContent');
+const suiteVideoTrack = document.getElementById('suiteVideoTrack');
+const suiteAudioTrack = document.getElementById('suiteAudioTrack');
+const suiteRuler = document.getElementById('suiteRuler');
+const suitePlayhead = document.getElementById('suitePlayhead');
+const suitePlayheadHead = document.getElementById('suitePlayheadHead');
+
+const suiteMonitor = document.getElementById('suiteMonitor');
+const suitePreviewVideo = document.getElementById('suitePreviewVideo');
+const suiteYouTube = document.getElementById('suiteYouTube');
+const suiteMonitorEmpty = document.getElementById('suiteMonitorEmpty');
+
+const suiteProjectCode = document.getElementById('suiteProjectCode');
+const suiteProjectTitle = document.getElementById('suiteProjectTitle');
+const suiteClient = document.getElementById('suiteClient');
+const suiteCategory = document.getElementById('suiteCategory');
+const suiteRole = document.getElementById('suiteRole');
+const suiteRuntime = document.getElementById('suiteRuntime');
+const suiteYear = document.getElementById('suiteYear');
+const suiteTopCode = document.getElementById('suiteTopCode');
+const suiteTimecode = document.getElementById('suiteTimecode');
+const suiteStatusText = document.getElementById('suiteStatusText');
+const suiteMonitorCode = document.getElementById('suiteMonitorCode');
+const suiteMonitorMode = document.getElementById('suiteMonitorMode');
+const suiteEmptyCode = document.getElementById('suiteEmptyCode');
+const suiteProgramTitle = document.getElementById('suiteProgramTitle');
+const suiteProgramRole = document.getElementById('suiteProgramRole');
+
+let suiteProjects = [];
+let suiteSelectedIndex = 0;
+let suiteHoverIndex = 0;
+let suiteDragging = false;
+let suiteOpen = false;
+let lastScrubIndex = -1;
+let scrubLoadTimer = null;
 
 function normalizeYouTubeId(value){
   if (!value) return '';
@@ -284,46 +314,349 @@ function normalizeYouTubeId(value){
   return '';
 }
 
-function openFilm(project){
-  const youtubeId = normalizeYouTubeId(project.dataset.youtube);
+function projectData(project, index){
+  const code = project.querySelector('.code')?.textContent.trim() || `V_${String(index + 1).padStart(3,'0')}`;
+  const title = project.querySelector('.title')?.textContent.trim() || 'UNTITLED PROJECT';
+  const category = project.querySelector('.type')?.textContent.trim() || 'MOTION';
+  const role = project.querySelector('.role')?.textContent.trim() || '—';
 
-  if (!youtubeId) {
-    return;
+  return {
+    element: project,
+    index,
+    code,
+    title,
+    category,
+    role,
+    client: project.dataset.client?.trim() || '—',
+    runtime: project.dataset.runtime?.trim() || '—',
+    year: project.dataset.year?.trim() || '2026',
+    youtube: project.dataset.youtube?.trim() || '',
+    preview: `/media/motion/v${String(index + 1).padStart(3,'0')}-preview.mp4`
+  };
+}
+
+function rebuildSuiteProjectData(){
+  suiteProjects = Array.from(projects).map(projectData);
+}
+
+function clipWidth(){
+  const value = getComputedStyle(suiteTimelineContent).getPropertyValue('--clip-w').trim();
+  return parseFloat(value) || 180;
+}
+
+function makeWaveform(index){
+  let bars = '';
+  for (let i = 0; i < 48; i++) {
+    const value = 8 + ((i * 17 + index * 23) % 29);
+    bars += `<i style="height:${value}px"></i>`;
+  }
+  return bars;
+}
+
+function buildSuiteTimeline(){
+  rebuildSuiteProjectData();
+  suiteVideoTrack.innerHTML = '';
+  suiteAudioTrack.innerHTML = '';
+  suiteRuler.innerHTML = '';
+
+  suiteProjects.forEach((item, index) => {
+    const ruler = document.createElement('div');
+    ruler.className = 'suite-ruler-segment';
+    ruler.innerHTML = `<span>${String(index).padStart(2,'0')}:00</span>`;
+    suiteRuler.appendChild(ruler);
+
+    const clip = document.createElement('button');
+    clip.type = 'button';
+    clip.className = 'suite-clip';
+    clip.dataset.index = String(index);
+    clip.setAttribute('aria-label', `${item.code} ${item.title}`);
+    clip.innerHTML = `
+      <span class="suite-clip-thumb"></span>
+      <span class="suite-clip-grid"></span>
+      <span class="suite-clip-info">
+        <span class="suite-clip-code">${item.code}</span>
+        <span class="suite-clip-title">${item.title}</span>
+      </span>
+    `;
+    clip.addEventListener('click', () => commitSuiteProject(index, true));
+    suiteVideoTrack.appendChild(clip);
+
+    const audio = document.createElement('div');
+    audio.className = 'suite-audio-clip';
+    audio.innerHTML = `<div class="suite-wave">${makeWaveform(index)}</div>`;
+    suiteAudioTrack.appendChild(audio);
+  });
+
+  suitePlayhead.setAttribute('aria-valuemax', String(suiteProjects.length));
+}
+
+function setClipSelection(index){
+  suiteVideoTrack.querySelectorAll('.suite-clip').forEach((clip, i) => {
+    clip.classList.toggle('selected', i === index);
+  });
+}
+
+function setPlayheadForIndex(index, animate = false){
+  const width = clipWidth();
+  const x = index * width + width * 0.5;
+
+  if (animate) {
+    suitePlayhead.style.transition = 'transform .22s cubic-bezier(.2,.75,.25,1)';
+    requestAnimationFrame(() => {
+      suitePlayhead.style.transform = `translateX(${x}px)`;
+    });
+    setTimeout(() => {
+      suitePlayhead.style.transition = '';
+    }, 240);
+  } else {
+    suitePlayhead.style.transform = `translateX(${x}px)`;
   }
 
-  const code = project.querySelector('.code')?.textContent.trim() || '';
-  const title = project.querySelector('.title')?.textContent.trim() || '';
-  const category = project.querySelector('.type')?.textContent.trim() || '';
-  const role = project.querySelector('.role')?.textContent.trim() || '';
-
-  filmLightboxCode.textContent = code;
-  filmLightboxTitle.textContent = title;
-  filmLightboxCategory.textContent = category;
-  filmLightboxRole.textContent = role;
-
-  filmPlayer.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`;
-  filmLightbox.classList.add('open');
-  filmLightbox.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('film-open');
+  suitePlayhead.setAttribute('aria-valuenow', String(index + 1));
 }
 
-function closeFilm(){
-  filmLightbox.classList.remove('open');
-  filmLightbox.setAttribute('aria-hidden', 'true');
-  filmPlayer.src = '';
-  document.body.classList.remove('film-open');
+function updateSuiteMetadata(index){
+  const item = suiteProjects[index];
+  if (!item) return;
+
+  suiteProjectCode.textContent = item.code;
+  suiteProjectTitle.textContent = item.title;
+  suiteClient.textContent = item.client;
+  suiteCategory.textContent = item.category;
+  suiteRole.textContent = item.role;
+  suiteRuntime.textContent = item.runtime;
+  suiteYear.textContent = item.year;
+  suiteTopCode.textContent = item.code;
+  suiteMonitorCode.textContent = item.code;
+  suiteEmptyCode.textContent = item.code;
+  suiteProgramTitle.textContent = item.title;
+  suiteProgramRole.textContent = item.role;
+
+  const frame = index * 13 % 24;
+  suiteTimecode.textContent = `00:${String(index).padStart(2,'0')}:00:${String(frame).padStart(2,'0')}`;
 }
 
-projects.forEach(project => {
-  project.addEventListener('click', () => openFilm(project));
+function stopYouTube(){
+  suiteYouTube.src = '';
+  suiteMonitor.classList.remove('youtube-mode');
+}
+
+function clearPreview(){
+  suitePreviewVideo.pause();
+  suitePreviewVideo.removeAttribute('src');
+  suitePreviewVideo.load();
+  suiteMonitor.classList.remove('previewing');
+}
+
+function showLocalPreview(index){
+  const item = suiteProjects[index];
+  if (!item) return;
+
+  stopYouTube();
+  suiteMonitorMode.textContent = 'SCRUB PREVIEW';
+  suiteStatusText.textContent = 'SCRUBBING ARCHIVE';
+  suiteMonitor.classList.remove('has-output');
+
+  if (suitePreviewVideo.dataset.projectIndex !== String(index)) {
+    suitePreviewVideo.pause();
+    suitePreviewVideo.src = item.preview;
+    suitePreviewVideo.dataset.projectIndex = String(index);
+    suitePreviewVideo.load();
+  }
+
+  const onReady = () => {
+    suiteMonitor.classList.add('previewing','has-output');
+    const attempt = suitePreviewVideo.play();
+    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+  };
+
+  if (suitePreviewVideo.readyState >= 2) {
+    onReady();
+  } else {
+    suitePreviewVideo.addEventListener('loadeddata', onReady, {once:true});
+    suitePreviewVideo.addEventListener('error', () => {
+      suiteMonitor.classList.remove('previewing','has-output');
+    }, {once:true});
+  }
+}
+
+function showProgram(index, autoplay = true){
+  const item = suiteProjects[index];
+  if (!item) return;
+
+  const youtubeId = normalizeYouTubeId(item.youtube);
+  suitePreviewVideo.pause();
+  suiteMonitor.classList.remove('previewing');
+  suiteMonitorMode.textContent = 'PROGRAM';
+  suiteStatusText.textContent = youtubeId ? 'PROGRAM ONLINE' : 'PREVIEW MODE';
+
+  if (youtubeId) {
+    suiteYouTube.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1`;
+    suiteMonitor.classList.add('youtube-mode','has-output');
+  } else {
+    suiteYouTube.src = '';
+    suiteMonitor.classList.remove('youtube-mode');
+    showLocalPreview(index);
+    suiteMonitorMode.textContent = 'PREVIEW';
+    suiteStatusText.textContent = 'YOUTUBE LINK NOT ROUTED';
+  }
+}
+
+function ensureClipVisible(index){
+  const width = clipWidth();
+  const targetCenter = index * width + width / 2;
+  const desired = targetCenter - suiteTimelineScroll.clientWidth / 2;
+  const max = Math.max(0, suiteTimelineScroll.scrollWidth - suiteTimelineScroll.clientWidth);
+  suiteTimelineScroll.scrollTo({
+    left: Math.max(0, Math.min(desired, max)),
+    behavior:'smooth'
+  });
+}
+
+function commitSuiteProject(index, center = false){
+  index = Math.max(0, Math.min(index, suiteProjects.length - 1));
+  suiteSelectedIndex = index;
+  suiteHoverIndex = index;
+  lastScrubIndex = index;
+
+  updateSuiteMetadata(index);
+  setClipSelection(index);
+  setPlayheadForIndex(index, true);
+  showProgram(index, true);
+
+  if (center) ensureClipVisible(index);
+}
+
+function previewSuiteProject(index){
+  index = Math.max(0, Math.min(index, suiteProjects.length - 1));
+  if (index === lastScrubIndex) return;
+  lastScrubIndex = index;
+  suiteHoverIndex = index;
+
+  updateSuiteMetadata(index);
+  setClipSelection(index);
+  showLocalPreview(index);
+}
+
+function openSuite(project){
+  if (!suiteProjects.length) buildSuiteTimeline();
+
+  const index = Number(project.dataset.index || 0);
+  suiteOpen = true;
+  suite.classList.add('open');
+  suite.setAttribute('aria-hidden','false');
+  document.body.classList.add('suite-open');
+
+  suiteSelectedIndex = index;
+  suiteHoverIndex = index;
+  lastScrubIndex = index;
+  updateSuiteMetadata(index);
+  setClipSelection(index);
+
+  requestAnimationFrame(() => {
+    setPlayheadForIndex(index, false);
+    ensureClipVisible(index);
+    showProgram(index, true);
+  });
+}
+
+function closeSuite(){
+  suiteOpen = false;
+  suiteDragging = false;
+  clearTimeout(scrubLoadTimer);
+  suite.classList.remove('open');
+  suite.setAttribute('aria-hidden','true');
+  document.body.classList.remove('suite-open');
+  stopYouTube();
+  clearPreview();
+}
+
+function timelineIndexFromClientX(clientX){
+  const rect = suiteTimelineContent.getBoundingClientRect();
+  const localX = clientX - rect.left;
+  const width = clipWidth();
+  return Math.max(0, Math.min(
+    Math.floor(localX / width),
+    suiteProjects.length - 1
+  ));
+}
+
+function movePlayheadRaw(clientX){
+  const rect = suiteTimelineContent.getBoundingClientRect();
+  const totalWidth = clipWidth() * suiteProjects.length;
+  const x = Math.max(0, Math.min(clientX - rect.left, totalWidth));
+  suitePlayhead.style.transform = `translateX(${x}px)`;
+
+  const index = timelineIndexFromClientX(clientX);
+  previewSuiteProject(index);
+}
+
+suitePlayheadHead.addEventListener('pointerdown', event => {
+  if (!suiteOpen) return;
+  suiteDragging = true;
+  suitePlayheadHead.setPointerCapture(event.pointerId);
+  stopYouTube();
+  event.preventDefault();
 });
 
-document.querySelectorAll('[data-close-film]').forEach(el => {
-  el.addEventListener('click', closeFilm);
+suitePlayheadHead.addEventListener('pointermove', event => {
+  if (!suiteDragging) return;
+  movePlayheadRaw(event.clientX);
+});
+
+function finishScrub(event){
+  if (!suiteDragging) return;
+  suiteDragging = false;
+
+  if (event && suitePlayheadHead.hasPointerCapture(event.pointerId)) {
+    suitePlayheadHead.releasePointerCapture(event.pointerId);
+  }
+
+  suiteSelectedIndex = suiteHoverIndex;
+  setPlayheadForIndex(suiteSelectedIndex, true);
+  setClipSelection(suiteSelectedIndex);
+
+  clearTimeout(scrubLoadTimer);
+  scrubLoadTimer = setTimeout(() => {
+    showProgram(suiteSelectedIndex, true);
+  }, 180);
+}
+
+suitePlayheadHead.addEventListener('pointerup', finishScrub);
+suitePlayheadHead.addEventListener('pointercancel', finishScrub);
+
+suitePlayhead.addEventListener('keydown', event => {
+  if (!suiteOpen) return;
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+
+  event.preventDefault();
+  const delta = event.key === 'ArrowRight' ? 1 : -1;
+  commitSuiteProject(suiteSelectedIndex + delta, true);
+});
+
+suiteTimelineContent.addEventListener('pointerdown', event => {
+  if (event.target.closest('.suite-clip') || event.target === suitePlayheadHead) return;
+  const index = timelineIndexFromClientX(event.clientX);
+  commitSuiteProject(index, false);
+});
+
+projects.forEach(project => {
+  project.addEventListener('click', () => openSuite(project));
+});
+
+document.querySelectorAll('[data-close-suite]').forEach(el => {
+  el.addEventListener('click', closeSuite);
 });
 
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && filmLightbox.classList.contains('open')) {
-    closeFilm();
+  if (event.key === 'Escape' && suite.classList.contains('open')) {
+    closeSuite();
   }
 });
+
+window.addEventListener('resize', () => {
+  if (!suiteOpen) return;
+  setPlayheadForIndex(suiteSelectedIndex, false);
+});
+
+buildSuiteTimeline();
