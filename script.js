@@ -220,6 +220,9 @@ const suitePlayheadHead = document.getElementById('suitePlayheadHead');
 const suiteMonitor = document.getElementById('suiteMonitor');
 const suitePreviewImage = document.getElementById('suitePreviewImage');
 const suiteYouTube = document.getElementById('suiteYouTube');
+const suiteExternalFallback = document.getElementById('suiteExternalFallback');
+const suiteExternalLink = document.getElementById('suiteExternalLink');
+const suiteExternalTitle = document.getElementById('suiteExternalTitle');
 
 const suiteProjectCode = document.getElementById('suiteProjectCode');
 const suiteProjectTitle = document.getElementById('suiteProjectTitle');
@@ -275,6 +278,7 @@ function projectData(project, index){
     runtime: project.dataset.runtime?.trim() || '—',
     year: project.dataset.year?.trim() || '—',
     youtube: project.dataset.youtube?.trim() || '',
+    externalOnly: project.dataset.externalOnly === 'true',
     thumb: `/public/media/motion/v${String(index + 1).padStart(3,'0')}-thumb.webp`
   };
 }
@@ -373,7 +377,8 @@ function updateSuiteMetadata(index){
 
 function stopYouTube(){
   suiteYouTube.src = '';
-  suiteMonitor.classList.remove('youtube-mode');
+  suiteMonitor.classList.remove('youtube-mode','external-only');
+  if (suiteExternalFallback) suiteExternalFallback.setAttribute('aria-hidden','true');
 }
 
 function showStillPreview(index){
@@ -392,8 +397,21 @@ function showProgram(index, autoplay = true){
   if (!item) return;
   const youtubeId = normalizeYouTubeId(item.youtube);
 
-  suiteMonitor.classList.remove('previewing');
+  suiteMonitor.classList.remove('previewing','external-only');
   suiteMonitorMode.textContent = 'PROGRAM';
+
+  if (item.externalOnly) {
+    stopYouTube();
+    suitePreviewImage.src = item.thumb;
+    suitePreviewImage.alt = `${item.title} preview`;
+    suiteMonitor.classList.add('previewing','has-output','external-only');
+    suiteMonitorMode.textContent = 'EXTERNAL PLAYBACK';
+    suiteStatusText.textContent = 'YOUTUBE RESTRICTION';
+    if (suiteExternalTitle) suiteExternalTitle.textContent = item.title;
+    if (suiteExternalLink) suiteExternalLink.href = `https://www.youtube.com/watch?v=${youtubeId}`;
+    if (suiteExternalFallback) suiteExternalFallback.setAttribute('aria-hidden','false');
+    return;
+  }
 
   if (youtubeId) {
     suiteYouTube.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1`;
