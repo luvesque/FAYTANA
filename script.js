@@ -9,10 +9,7 @@ const scrambleWords = [...document.querySelectorAll('.scramble-word')];
 const emptyState = document.getElementById('emptyState');
 
 const frames = [
-  '00:37:14:08','00:14:08:22','00:02:41:16','00:19:33:04',
-  '00:07:52:11','00:09:14:02','00:16:44:19','00:04:31:07',
-  '00:01:20:12','00:03:08:04','00:00:54:18','00:05:19:09',
-  '00:02:47:21','00:06:03:15','00:01:12:05','00:08:42:11'
+  '00:03:07:00', '00:02:45:00', '00:02:23:00', '00:03:18:00', '00:02:35:00', '00:03:00:00', '00:01:58:00', '00:03:28:00', '00:02:41:00', '00:01:23:00', '00:04:50:00', '00:11:44:00', '00:05:55:00', '00:02:09:00', '00:02:47:00', '00:02:14:00', '00:01:06:00', '00:02:45:00', '00:06:52:00', '00:20:17:00', '00:04:59:00'
 ];
 
 const boot = document.getElementById('boot');
@@ -202,51 +199,14 @@ form.addEventListener('submit', event => {
   window.location.href = `mailto:faytanafilms@gmail.com?subject=${subject}&body=${body}`;
 });
 
-/* ===== REAL MEDIA + FAYTANA EDIT SUITE ===== */
-document.querySelectorAll('.work-bg video').forEach(video => {
-  const holder = video.closest('.work-bg');
 
-  video.addEventListener('loadeddata', () => {
-    holder.classList.add('has-media');
-  });
-
-  video.addEventListener('error', () => {
-    holder.classList.remove('has-media');
-  });
-});
-
+/* ===== REAL THUMBNAILS + FAYTANA EDIT SUITE ===== */
 document.querySelectorAll('.frame img').forEach(img => {
   const frame = img.closest('.frame');
-
-  if (img.complete && img.naturalWidth > 0) {
-    frame.classList.add('has-media');
-  }
-
+  if (img.complete && img.naturalWidth > 0) frame.classList.add('has-media');
   img.addEventListener('load', () => frame.classList.add('has-media'));
   img.addEventListener('error', () => frame.classList.remove('has-media'));
 });
-
-function syncPreviewVideos(activeIndex){
-  document.querySelectorAll('.work-bg').forEach((bg, i) => {
-    const video = bg.querySelector('video');
-    if (!video) return;
-
-    if (i === activeIndex && bg.classList.contains('has-media')) {
-      const playAttempt = video.play();
-      if (playAttempt && typeof playAttempt.catch === 'function') {
-        playAttempt.catch(() => {});
-      }
-    } else {
-      video.pause();
-    }
-  });
-}
-
-const originalActivate = activate;
-activate = function(index){
-  originalActivate(index);
-  syncPreviewVideos(index);
-};
 
 const suite = document.getElementById('editSuite');
 const suiteTimelineScroll = document.getElementById('suiteTimelineScroll');
@@ -258,9 +218,8 @@ const suitePlayhead = document.getElementById('suitePlayhead');
 const suitePlayheadHead = document.getElementById('suitePlayheadHead');
 
 const suiteMonitor = document.getElementById('suiteMonitor');
-const suitePreviewVideo = document.getElementById('suitePreviewVideo');
+const suitePreviewImage = document.getElementById('suitePreviewImage');
 const suiteYouTube = document.getElementById('suiteYouTube');
-const suiteMonitorEmpty = document.getElementById('suiteMonitorEmpty');
 
 const suiteProjectCode = document.getElementById('suiteProjectCode');
 const suiteProjectTitle = document.getElementById('suiteProjectTitle');
@@ -289,49 +248,34 @@ let scrubLoadTimer = null;
 function normalizeYouTubeId(value){
   if (!value) return '';
   const trimmed = value.trim();
-
   if (/^[A-Za-z0-9_-]{11}$/.test(trimmed)) return trimmed;
-
   try {
     const url = new URL(trimmed);
-    if (url.hostname.includes('youtu.be')) {
-      return url.pathname.split('/').filter(Boolean)[0] || '';
-    }
-    if (url.searchParams.get('v')) {
-      return url.searchParams.get('v');
-    }
+    if (url.hostname.includes('youtu.be')) return url.pathname.split('/').filter(Boolean)[0] || '';
+    if (url.searchParams.get('v')) return url.searchParams.get('v');
     const parts = url.pathname.split('/').filter(Boolean);
     const embedIndex = parts.indexOf('embed');
-    if (embedIndex !== -1 && parts[embedIndex + 1]) {
-      return parts[embedIndex + 1];
-    }
+    if (embedIndex !== -1 && parts[embedIndex + 1]) return parts[embedIndex + 1];
     const shortsIndex = parts.indexOf('shorts');
-    if (shortsIndex !== -1 && parts[shortsIndex + 1]) {
-      return parts[shortsIndex + 1];
-    }
+    if (shortsIndex !== -1 && parts[shortsIndex + 1]) return parts[shortsIndex + 1];
   } catch (e) {}
-
   return '';
 }
 
 function projectData(project, index){
   const code = project.querySelector('.code')?.textContent.trim() || `V_${String(index + 1).padStart(3,'0')}`;
-  const title = project.querySelector('.title')?.textContent.trim() || 'UNTITLED PROJECT';
-  const category = project.querySelector('.type')?.textContent.trim() || 'MOTION';
-  const role = project.querySelector('.role')?.textContent.trim() || '—';
-
   return {
     element: project,
     index,
     code,
-    title,
-    category,
-    role,
+    title: project.querySelector('.title')?.textContent.trim() || 'UNTITLED PROJECT',
+    category: project.querySelector('.type')?.textContent.trim() || 'MOTION',
+    role: project.querySelector('.role')?.textContent.trim() || '—',
     client: project.dataset.client?.trim() || '—',
     runtime: project.dataset.runtime?.trim() || '—',
-    year: project.dataset.year?.trim() || '2026',
+    year: project.dataset.year?.trim() || '—',
     youtube: project.dataset.youtube?.trim() || '',
-    preview: `/media/motion/v${String(index + 1).padStart(3,'0')}-preview.mp4`
+    thumb: `/media/motion/v${String(index + 1).padStart(3,'0')}-thumb.webp`
   };
 }
 
@@ -371,7 +315,7 @@ function buildSuiteTimeline(){
     clip.dataset.index = String(index);
     clip.setAttribute('aria-label', `${item.code} ${item.title}`);
     clip.innerHTML = `
-      <span class="suite-clip-thumb"></span>
+      <span class="suite-clip-thumb" style="--clip-bg:url('${item.thumb}')"></span>
       <span class="suite-clip-grid"></span>
       <span class="suite-clip-info">
         <span class="suite-clip-code">${item.code}</span>
@@ -399,26 +343,19 @@ function setClipSelection(index){
 function setPlayheadForIndex(index, animate = false){
   const width = clipWidth();
   const x = index * width + width * 0.5;
-
   if (animate) {
     suitePlayhead.style.transition = 'transform .22s cubic-bezier(.2,.75,.25,1)';
-    requestAnimationFrame(() => {
-      suitePlayhead.style.transform = `translateX(${x}px)`;
-    });
-    setTimeout(() => {
-      suitePlayhead.style.transition = '';
-    }, 240);
+    requestAnimationFrame(() => suitePlayhead.style.transform = `translateX(${x}px)`);
+    setTimeout(() => suitePlayhead.style.transition = '', 240);
   } else {
     suitePlayhead.style.transform = `translateX(${x}px)`;
   }
-
   suitePlayhead.setAttribute('aria-valuenow', String(index + 1));
 }
 
 function updateSuiteMetadata(index){
   const item = suiteProjects[index];
   if (!item) return;
-
   suiteProjectCode.textContent = item.code;
   suiteProjectTitle.textContent = item.title;
   suiteClient.textContent = item.client;
@@ -431,9 +368,7 @@ function updateSuiteMetadata(index){
   suiteEmptyCode.textContent = item.code;
   suiteProgramTitle.textContent = item.title;
   suiteProgramRole.textContent = item.role;
-
-  const frame = index * 13 % 24;
-  suiteTimecode.textContent = `00:${String(index).padStart(2,'0')}:00:${String(frame).padStart(2,'0')}`;
+  suiteTimecode.textContent = `00:${String(index).padStart(2,'0')}:00:${String((index * 13) % 24).padStart(2,'0')}`;
 }
 
 function stopYouTube(){
@@ -441,62 +376,31 @@ function stopYouTube(){
   suiteMonitor.classList.remove('youtube-mode');
 }
 
-function clearPreview(){
-  suitePreviewVideo.pause();
-  suitePreviewVideo.removeAttribute('src');
-  suitePreviewVideo.load();
-  suiteMonitor.classList.remove('previewing');
-}
-
-function showLocalPreview(index){
+function showStillPreview(index){
   const item = suiteProjects[index];
   if (!item) return;
-
   stopYouTube();
+  suitePreviewImage.src = item.thumb;
+  suitePreviewImage.alt = `${item.title} preview`;
+  suiteMonitor.classList.add('previewing','has-output');
   suiteMonitorMode.textContent = 'SCRUB PREVIEW';
   suiteStatusText.textContent = 'SCRUBBING ARCHIVE';
-  suiteMonitor.classList.remove('has-output');
-
-  if (suitePreviewVideo.dataset.projectIndex !== String(index)) {
-    suitePreviewVideo.pause();
-    suitePreviewVideo.src = item.preview;
-    suitePreviewVideo.dataset.projectIndex = String(index);
-    suitePreviewVideo.load();
-  }
-
-  const onReady = () => {
-    suiteMonitor.classList.add('previewing','has-output');
-    const attempt = suitePreviewVideo.play();
-    if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
-  };
-
-  if (suitePreviewVideo.readyState >= 2) {
-    onReady();
-  } else {
-    suitePreviewVideo.addEventListener('loadeddata', onReady, {once:true});
-    suitePreviewVideo.addEventListener('error', () => {
-      suiteMonitor.classList.remove('previewing','has-output');
-    }, {once:true});
-  }
 }
 
 function showProgram(index, autoplay = true){
   const item = suiteProjects[index];
   if (!item) return;
-
   const youtubeId = normalizeYouTubeId(item.youtube);
-  suitePreviewVideo.pause();
+
   suiteMonitor.classList.remove('previewing');
   suiteMonitorMode.textContent = 'PROGRAM';
-  suiteStatusText.textContent = youtubeId ? 'PROGRAM ONLINE' : 'PREVIEW MODE';
 
   if (youtubeId) {
     suiteYouTube.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=${autoplay ? 1 : 0}&rel=0&modestbranding=1`;
     suiteMonitor.classList.add('youtube-mode','has-output');
+    suiteStatusText.textContent = 'PROGRAM ONLINE';
   } else {
-    suiteYouTube.src = '';
-    suiteMonitor.classList.remove('youtube-mode');
-    showLocalPreview(index);
+    showStillPreview(index);
     suiteMonitorMode.textContent = 'PREVIEW';
     suiteStatusText.textContent = 'YOUTUBE LINK NOT ROUTED';
   }
@@ -507,10 +411,7 @@ function ensureClipVisible(index){
   const targetCenter = index * width + width / 2;
   const desired = targetCenter - suiteTimelineScroll.clientWidth / 2;
   const max = Math.max(0, suiteTimelineScroll.scrollWidth - suiteTimelineScroll.clientWidth);
-  suiteTimelineScroll.scrollTo({
-    left: Math.max(0, Math.min(desired, max)),
-    behavior:'smooth'
-  });
+  suiteTimelineScroll.scrollTo({left: Math.max(0, Math.min(desired, max)), behavior:'smooth'});
 }
 
 function commitSuiteProject(index, center = false){
@@ -518,12 +419,10 @@ function commitSuiteProject(index, center = false){
   suiteSelectedIndex = index;
   suiteHoverIndex = index;
   lastScrubIndex = index;
-
   updateSuiteMetadata(index);
   setClipSelection(index);
   setPlayheadForIndex(index, true);
   showProgram(index, true);
-
   if (center) ensureClipVisible(index);
 }
 
@@ -532,27 +431,23 @@ function previewSuiteProject(index){
   if (index === lastScrubIndex) return;
   lastScrubIndex = index;
   suiteHoverIndex = index;
-
   updateSuiteMetadata(index);
   setClipSelection(index);
-  showLocalPreview(index);
+  showStillPreview(index);
 }
 
 function openSuite(project){
   if (!suiteProjects.length) buildSuiteTimeline();
-
   const index = Number(project.dataset.index || 0);
   suiteOpen = true;
   suite.classList.add('open');
   suite.setAttribute('aria-hidden','false');
   document.body.classList.add('suite-open');
-
   suiteSelectedIndex = index;
   suiteHoverIndex = index;
   lastScrubIndex = index;
   updateSuiteMetadata(index);
   setClipSelection(index);
-
   requestAnimationFrame(() => {
     setPlayheadForIndex(index, false);
     ensureClipVisible(index);
@@ -568,17 +463,15 @@ function closeSuite(){
   suite.setAttribute('aria-hidden','true');
   document.body.classList.remove('suite-open');
   stopYouTube();
-  clearPreview();
+  suitePreviewImage.src = '';
+  suiteMonitor.classList.remove('previewing');
 }
 
 function timelineIndexFromClientX(clientX){
   const rect = suiteTimelineContent.getBoundingClientRect();
   const localX = clientX - rect.left;
   const width = clipWidth();
-  return Math.max(0, Math.min(
-    Math.floor(localX / width),
-    suiteProjects.length - 1
-  ));
+  return Math.max(0, Math.min(Math.floor(localX / width), suiteProjects.length - 1));
 }
 
 function movePlayheadRaw(clientX){
@@ -586,9 +479,7 @@ function movePlayheadRaw(clientX){
   const totalWidth = clipWidth() * suiteProjects.length;
   const x = Math.max(0, Math.min(clientX - rect.left, totalWidth));
   suitePlayhead.style.transform = `translateX(${x}px)`;
-
-  const index = timelineIndexFromClientX(clientX);
-  previewSuiteProject(index);
+  previewSuiteProject(timelineIndexFromClientX(clientX));
 }
 
 suitePlayheadHead.addEventListener('pointerdown', event => {
@@ -598,65 +489,42 @@ suitePlayheadHead.addEventListener('pointerdown', event => {
   stopYouTube();
   event.preventDefault();
 });
-
 suitePlayheadHead.addEventListener('pointermove', event => {
-  if (!suiteDragging) return;
-  movePlayheadRaw(event.clientX);
+  if (suiteDragging) movePlayheadRaw(event.clientX);
 });
-
 function finishScrub(event){
   if (!suiteDragging) return;
   suiteDragging = false;
-
   if (event && suitePlayheadHead.hasPointerCapture(event.pointerId)) {
     suitePlayheadHead.releasePointerCapture(event.pointerId);
   }
-
   suiteSelectedIndex = suiteHoverIndex;
   setPlayheadForIndex(suiteSelectedIndex, true);
   setClipSelection(suiteSelectedIndex);
-
   clearTimeout(scrubLoadTimer);
-  scrubLoadTimer = setTimeout(() => {
-    showProgram(suiteSelectedIndex, true);
-  }, 180);
+  scrubLoadTimer = setTimeout(() => showProgram(suiteSelectedIndex, true), 180);
 }
-
 suitePlayheadHead.addEventListener('pointerup', finishScrub);
 suitePlayheadHead.addEventListener('pointercancel', finishScrub);
 
 suitePlayhead.addEventListener('keydown', event => {
-  if (!suiteOpen) return;
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-
+  if (!suiteOpen || (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
   event.preventDefault();
-  const delta = event.key === 'ArrowRight' ? 1 : -1;
-  commitSuiteProject(suiteSelectedIndex + delta, true);
+  commitSuiteProject(suiteSelectedIndex + (event.key === 'ArrowRight' ? 1 : -1), true);
 });
 
 suiteTimelineContent.addEventListener('pointerdown', event => {
   if (event.target.closest('.suite-clip') || event.target === suitePlayheadHead) return;
-  const index = timelineIndexFromClientX(event.clientX);
-  commitSuiteProject(index, false);
+  commitSuiteProject(timelineIndexFromClientX(event.clientX), false);
 });
 
-projects.forEach(project => {
-  project.addEventListener('click', () => openSuite(project));
-});
-
-document.querySelectorAll('[data-close-suite]').forEach(el => {
-  el.addEventListener('click', closeSuite);
-});
-
+projects.forEach(project => project.addEventListener('click', () => openSuite(project)));
+document.querySelectorAll('[data-close-suite]').forEach(el => el.addEventListener('click', closeSuite));
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape' && suite.classList.contains('open')) {
-    closeSuite();
-  }
+  if (event.key === 'Escape' && suite.classList.contains('open')) closeSuite();
 });
-
 window.addEventListener('resize', () => {
-  if (!suiteOpen) return;
-  setPlayheadForIndex(suiteSelectedIndex, false);
+  if (suiteOpen) setPlayheadForIndex(suiteSelectedIndex, false);
 });
 
 buildSuiteTimeline();
