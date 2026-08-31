@@ -275,7 +275,7 @@ function projectData(project, index){
     runtime: project.dataset.runtime?.trim() || '—',
     year: project.dataset.year?.trim() || '—',
     youtube: project.dataset.youtube?.trim() || '',
-    thumb: `/media/motion/v${String(index + 1).padStart(3,'0')}-thumb.webp`
+    thumb: `/public/media/motion/v${String(index + 1).padStart(3,'0')}-thumb.webp`
   };
 }
 
