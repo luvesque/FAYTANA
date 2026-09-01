@@ -1171,3 +1171,54 @@ body.suite-open{overflow:hidden}
   outline:2px solid #f4efe6;
   outline-offset:4px;
 }
+
+
+/* ===== FAYTANA INTRO — REAL ARCHIVE MEDIA ===== */
+.tlv2-preview-frame{
+  background:#050505;
+}
+.tlv2-preview-media{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity .07s linear;
+}
+.tlv2-preview-media.active{opacity:1}
+.tlv2-preview-video{background:#050505}
+.tlv2-clip{
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  text-shadow:0 1px 4px rgba(0,0,0,.9);
+  position:relative;
+}
+.tlv2-clip::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.08),rgba(0,0,0,.48));
+  pointer-events:none;
+}
+.tlv2-clip{z-index:0}
+.tlv2-clip[data-file="V_001"]{background-image:url("/public/media/motion/v001-thumb.webp")}
+.tlv2-clip[data-file="V_009"]{background-image:url("/public/media/motion/v009-thumb.webp")}
+.tlv2-clip[data-file="V_016"]{background-image:url("/public/media/motion/v016-thumb.webp")}
+.tlv2-clip[data-file="V_004"]{background-image:url("/public/media/motion/v004-thumb.webp")}
+.tlv2-clip[data-file="V_003"]{background-image:url("/public/media/motion/v003-thumb.webp")}
+.tlv2-clip[data-file="V_012"]{background-image:url("/public/media/motion/v012-thumb.webp")}
+.tlv2-clip.faytana-master{
+  flex:1.45;
+  min-width:105px;
+  background-image:none;
+  background:#ded8ce;
+  color:#0a0a0a;
+  border-color:#ded8ce;
+  text-shadow:none;
+  letter-spacing:.12em;
+}
+.tlv2-clip.faytana-master::after{
+  background:linear-gradient(90deg,transparent,rgba(96,31,44,.16),transparent);
+}
