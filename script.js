@@ -17,31 +17,31 @@ const playhead = document.getElementById('playhead');
 const previewFile = document.getElementById('previewFile');
 const previewRole = document.getElementById('previewRole');
 const previewFrame = document.getElementById('previewFrame');
+const introPreviewImage = document.getElementById('introPreviewImage');
+const introPreviewVideo = document.getElementById('introPreviewVideo');
 const tlTc = document.getElementById('tlTc');
 const tlStatus = document.getElementById('tlStatus');
 
 window.addEventListener('load', () => {
-  const totalDuration = 5900;
+  const totalDuration = 6800;
   const playbackStart = 1550;
-  const playbackEnd = 4550;
+  const playbackEnd = 5600;
   const playbackDuration = playbackEnd - playbackStart;
 
   const timelineShell = document.getElementById('timelineShell');
   const shellRect = () => timelineShell.getBoundingClientRect();
 
   const cuts = [
-    { start: 0.00, end: 0.18, file:'V_001', role:'FULL PRODUCTION',
-      bg:'linear-gradient(135deg,#1d1013,#070707 55%,#5e2530)' },
-    { start: 0.18, end: 0.41, file:'V_009', role:'EDITOR',
-      bg:'radial-gradient(circle at 68% 30%,#6c4435,transparent 22%),linear-gradient(135deg,#080808,#191516)' },
-    { start: 0.41, end: 0.56, file:'V_016', role:'FULL PRODUCTION',
-      bg:'linear-gradient(120deg,#080808,#35131a 48%,#050505)' },
-    { start: 0.56, end: 0.85, file:'V_004', role:'FULL PRODUCTION',
-      bg:'radial-gradient(circle at 42% 52%,#66615c,transparent 12%),linear-gradient(145deg,#050505,#171214)' },
-    { start: 0.85, end: 1.00, file:'V_003', role:'FULL PRODUCTION',
-      bg:'linear-gradient(145deg,#0b0b0b,#251317 55%,#090909)' }
+    { start: 0.00, end: 0.105, file:'V_001', role:'FULL PRODUCTION', thumb:'/public/media/motion/v001-thumb.webp' },
+    { start: 0.105, end: 0.210, file:'V_009', role:'FULL PRODUCTION', thumb:'/public/media/motion/v009-thumb.webp' },
+    { start: 0.210, end: 0.315, file:'V_016', role:'EDITOR', thumb:'/public/media/motion/v016-thumb.webp' },
+    { start: 0.315, end: 0.420, file:'V_004', role:'FULL PRODUCTION', thumb:'/public/media/motion/v004-thumb.webp' },
+    { start: 0.420, end: 0.525, file:'V_003', role:'FULL PRODUCTION', thumb:'/public/media/motion/v003-thumb.webp' },
+    { start: 0.525, end: 0.630, file:'V_012', role:'FULL PRODUCTION', thumb:'/public/media/motion/v012-thumb.webp' },
+    { start: 0.630, end: 1.000, file:'FAYTANA', role:'FINAL MASTER', video:true }
   ];
 
+  introPreviewImage.classList.add('active');
   const startTime = performance.now();
 
   setTimeout(() => {
@@ -54,11 +54,27 @@ window.addEventListener('load', () => {
     tlStatus.textContent = 'SEQUENCE READY';
   }, 900);
 
+  let activeIntroCut = null;
   function setPreview(cut){
-    if (previewFile.textContent !== cut.file){
-      previewFile.textContent = cut.file;
-      previewRole.textContent = cut.role;
-      previewFrame.style.background = cut.bg;
+    if (activeIntroCut === cut) return;
+    activeIntroCut = cut;
+
+    previewFile.textContent = cut.file;
+    previewRole.textContent = cut.role;
+
+    if (cut.video){
+      introPreviewImage.classList.remove('active');
+      introPreviewVideo.classList.add('active');
+      try {
+        introPreviewVideo.currentTime = 0;
+        const playPromise = introPreviewVideo.play();
+        if (playPromise) playPromise.catch(() => {});
+      } catch (_) {}
+    } else {
+      introPreviewVideo.pause();
+      introPreviewVideo.classList.remove('active');
+      introPreviewImage.src = cut.thumb;
+      introPreviewImage.classList.add('active');
     }
   }
 
@@ -89,22 +105,22 @@ window.addEventListener('load', () => {
 
   setTimeout(() => {
     tlStatus.textContent = 'CONFORMING TO FAYTANA ARCHIVE';
-  }, 4600);
+  }, 5650);
 
   setTimeout(() => {
     boot.classList.add('bleeding');
-  }, 4850);
+  }, 5900);
 
   setTimeout(() => {
     boot.classList.add('home-bleed');
     document.body.classList.add('home-reveal');
-  }, 5200);
+  }, 6250);
 
   // At this point the intro has already become transparent.
   // Remove it without another opacity fade so there is only ONE visual handoff.
   setTimeout(() => {
     boot.classList.add('gone');
-  }, 5550);
+  }, 6600);
 });
 
 function activate(index) {
