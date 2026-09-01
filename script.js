@@ -9,7 +9,7 @@ const scrambleWords = [...document.querySelectorAll('.scramble-word')];
 const emptyState = document.getElementById('emptyState');
 
 const frames = [
-  '00:03:07:00', '00:02:45:00', '00:02:23:00', '00:03:18:00', '00:02:35:00', '00:03:00:00', '00:01:58:00', '00:03:28:00', '00:02:41:00', '00:01:23:00', '00:04:50:00', '00:11:44:00', '00:05:55:00', '00:02:09:00', '00:02:47:00', '00:02:14:00', '00:01:06:00', '00:02:45:00', '00:06:52:00', '00:20:17:00', '00:04:59:00'
+  '00:03:07:00', '00:03:28:00', '00:03:18:00', '00:02:41:00', '00:02:23:00', '00:02:09:00', '00:02:47:00', '00:04:50:00', '00:02:45:00', '00:02:35:00', '00:03:00:00', '00:01:58:00', '00:11:44:00', '00:05:55:00', '00:02:14:00', '00:01:06:00', '00:02:45:00', '00:06:52:00', '00:01:23:00', '00:04:59:00', '00:20:17:00'
 ];
 
 const boot = document.getElementById('boot');
@@ -222,7 +222,6 @@ const suitePreviewImage = document.getElementById('suitePreviewImage');
 const suiteYouTube = document.getElementById('suiteYouTube');
 const suiteExternalFallback = document.getElementById('suiteExternalFallback');
 const suiteExternalLink = document.getElementById('suiteExternalLink');
-const suiteExternalTitle = document.getElementById('suiteExternalTitle');
 
 const suiteProjectCode = document.getElementById('suiteProjectCode');
 const suiteProjectTitle = document.getElementById('suiteProjectTitle');
@@ -375,6 +374,12 @@ function updateSuiteMetadata(index){
   suiteTimecode.textContent = `00:${String(index).padStart(2,'0')}:00:${String((index * 13) % 24).padStart(2,'0')}`;
 }
 
+function setSuiteStill(item){
+  if (!item) return;
+  setSuiteStill(item);
+  suiteMonitor.style.setProperty('--suite-preview-bg', `url("${item.thumb}")`);
+}
+
 function stopYouTube(){
   suiteYouTube.src = '';
   suiteMonitor.classList.remove('youtube-mode','external-only');
@@ -385,8 +390,7 @@ function showStillPreview(index){
   const item = suiteProjects[index];
   if (!item) return;
   stopYouTube();
-  suitePreviewImage.src = item.thumb;
-  suitePreviewImage.alt = `${item.title} preview`;
+  setSuiteStill(item);
   suiteMonitor.classList.add('previewing','has-output');
   suiteMonitorMode.textContent = 'SCRUB PREVIEW';
   suiteStatusText.textContent = 'SCRUBBING ARCHIVE';
@@ -407,8 +411,11 @@ function showProgram(index, autoplay = true){
     suiteMonitor.classList.add('previewing','has-output','external-only');
     suiteMonitorMode.textContent = 'EXTERNAL PLAYBACK';
     suiteStatusText.textContent = 'YOUTUBE RESTRICTION';
-    if (suiteExternalTitle) suiteExternalTitle.textContent = item.title;
-    if (suiteExternalLink) suiteExternalLink.href = `https://www.youtube.com/watch?v=${youtubeId}`;
+    if (suiteExternalLink) {
+      suiteExternalLink.href = youtubeId
+        ? `https://www.youtube.com/watch?v=${youtubeId}`
+        : item.youtube;
+    }
     if (suiteExternalFallback) suiteExternalFallback.setAttribute('aria-hidden','false');
     return;
   }
@@ -482,6 +489,7 @@ function closeSuite(){
   document.body.classList.remove('suite-open');
   stopYouTube();
   suitePreviewImage.src = '';
+  suiteMonitor.style.removeProperty('--suite-preview-bg');
   suiteMonitor.classList.remove('previewing');
 }
 
